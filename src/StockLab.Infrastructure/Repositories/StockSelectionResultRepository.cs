@@ -38,6 +38,57 @@ public class StockSelectionResultRepository(IStockDbConnectionFactory connection
         return count > 0;
     }
 
+
+    public async Task<DateOnly?> GetLatestResultTradeDateAsync(
+        string strategyName,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            SELECT MAX(TradeDate)
+            FROM StockSelectionRuns
+            WHERE StrategyName = @StrategyName;
+            """;
+
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        var latestTradeDate = await connection.QuerySingleOrDefaultAsync<DateTime?>(
+            new CommandDefinition(
+                sql,
+                new { StrategyName = strategyName },
+                cancellationToken: cancellationToken));
+
+        return latestTradeDate is null ? null : DateOnly.FromDateTime(latestTradeDate.Value);
+    }
+
+    public async Task<IReadOnlyCollection<DateOnly>> GetResultTradeDatesAsync(
+        string strategyName,
+        int limit = 20,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            SELECT TradeDate
+            FROM StockSelectionRuns
+            WHERE StrategyName = @StrategyName
+            ORDER BY TradeDate DESC
+            LIMIT @Limit;
+            """;
+
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<DateTime>(
+            new CommandDefinition(
+                sql,
+                new
+                {
+                    StrategyName = strategyName,
+                    Limit = limit
+                },
+                cancellationToken: cancellationToken));
+
+        return rows.Select(DateOnly.FromDateTime).ToArray();
+    }
     public async Task<IReadOnlyCollection<StockSelectionResult>> GetStrategyResultsAsync(
         DateOnly tradeDate,
         string strategyName,
@@ -266,3 +317,4 @@ public class StockSelectionResultRepository(IStockDbConnectionFactory connection
         }
     }
 }
+

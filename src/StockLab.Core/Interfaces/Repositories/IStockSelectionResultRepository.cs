@@ -9,6 +9,15 @@ public interface IStockSelectionResultRepository
         string strategyName,
         CancellationToken cancellationToken = default);
 
+    Task<DateOnly?> GetLatestResultTradeDateAsync(
+        string strategyName,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<DateOnly>> GetResultTradeDatesAsync(
+        string strategyName,
+        int limit = 20,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyCollection<StockSelectionResult>> GetStrategyResultsAsync(
         DateOnly tradeDate,
         string strategyName,

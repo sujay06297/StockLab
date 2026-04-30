@@ -44,6 +44,9 @@ public static class Program
         builder.Services.AddScoped<ITwseClient, TwseClient>();
         builder.Services.AddScoped<IStockSyncService, StockSyncService>();
         builder.Services.AddScoped<IStockSelectionService, StockSelectionService>();
+        builder.Services.AddScoped<IStockQuoteQueryService, StockQuoteQueryService>();
+        builder.Services.AddScoped<IStockSelectionQueryService, StockSelectionQueryService>();
+        builder.Services.AddScoped<IJobExecutionService, JobExecutionService>();
 
         var app = builder.Build();
 
@@ -60,3 +63,4 @@ public static class Program
         await app.RunAsync();
     }
 }
+

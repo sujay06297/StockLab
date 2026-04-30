@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/StockLab.Core/StockLab.Core.csproj" />
+  <Project Path="src/StockLab.Infrastructure/StockLab.Infrastructure.csproj" />
+  <Project Path="src/StockLab.Api/StockLab.Api.csproj" />
+  <Project Path="src/StockLab.Worker/StockLab.Worker.csproj" />
+</Solution>

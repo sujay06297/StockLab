@@ -1,4 +1,4 @@
-namespace StockLab.Core.Entities;
+﻿namespace StockLab.Core.Entities;
 
 public class StockDailyQuote
 {

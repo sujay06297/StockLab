@@ -1,8 +1,8 @@
+﻿using System.Globalization;
+using Dapper;
 using StockLab.Core.Entities;
 using StockLab.Core.Interfaces.Repositories;
 using StockLab.Infrastructure.Data;
-using Dapper;
-using System.Globalization;
 
 namespace StockLab.Infrastructure.Repositories;
 
@@ -26,7 +26,7 @@ public class StockDailyQuoteRepository(IStockDbConnectionFactory connectionFacto
             quote.SyncedAtUtc = syncedAt;
             return new
             {
-                TradeDate = quote.TradeDate.ToString("yyyy-MM-dd"),
+                TradeDate = quote.TradeDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 quote.StockCode,
                 quote.StockName,
                 quote.TradeVolume,
@@ -97,22 +97,8 @@ public class StockDailyQuoteRepository(IStockDbConnectionFactory connectionFacto
         DateOnly tradeDate,
         CancellationToken cancellationToken = default)
     {
-        const string sql = """
-            SELECT
-                Id,
-                TradeDate,
-                StockCode,
-                StockName,
-                TradeVolume,
-                TradeValue,
-                OpeningPrice,
-                HighestPrice,
-                LowestPrice,
-                ClosingPrice,
-                PriceChange,
-                PriceChangeText,
-                TransactionCount,
-                SyncedAtUtc
+        const string sql = $"""
+            {SelectColumnsSql}
             FROM StockDailyQuotes
             WHERE StockCode = @StockCode
               AND TradeDate = @TradeDate
@@ -139,22 +125,8 @@ public class StockDailyQuoteRepository(IStockDbConnectionFactory connectionFacto
         DateOnly tradeDate,
         CancellationToken cancellationToken = default)
     {
-        const string sql = """
-            SELECT
-                Id,
-                TradeDate,
-                StockCode,
-                StockName,
-                TradeVolume,
-                TradeValue,
-                OpeningPrice,
-                HighestPrice,
-                LowestPrice,
-                ClosingPrice,
-                PriceChange,
-                PriceChangeText,
-                TransactionCount,
-                SyncedAtUtc
+        const string sql = $"""
+            {SelectColumnsSql}
             FROM StockDailyQuotes
             WHERE TradeDate = @TradeDate
             ORDER BY StockCode;
@@ -178,22 +150,8 @@ public class StockDailyQuoteRepository(IStockDbConnectionFactory connectionFacto
         DateOnly? toTradeDate = null,
         CancellationToken cancellationToken = default)
     {
-        const string sql = """
-            SELECT
-                Id,
-                TradeDate,
-                StockCode,
-                StockName,
-                TradeVolume,
-                TradeValue,
-                OpeningPrice,
-                HighestPrice,
-                LowestPrice,
-                ClosingPrice,
-                PriceChange,
-                PriceChangeText,
-                TransactionCount,
-                SyncedAtUtc
+        const string sql = $"""
+            {SelectColumnsSql}
             FROM StockDailyQuotes
             WHERE StockCode = @StockCode
               AND (@FromTradeDate IS NULL OR TradeDate >= @FromTradeDate)
@@ -217,6 +175,77 @@ public class StockDailyQuoteRepository(IStockDbConnectionFactory connectionFacto
 
         return rows.Select(row => row.ToEntity()).ToArray();
     }
+
+    public async Task<DateOnly?> GetLatestTradeDateAsync(CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            SELECT MAX(TradeDate)
+            FROM StockDailyQuotes;
+            """;
+
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        var latestTradeDate = await connection.QuerySingleOrDefaultAsync<DateTime?>(
+            new CommandDefinition(sql, cancellationToken: cancellationToken));
+
+        return latestTradeDate is null ? null : DateOnly.FromDateTime(latestTradeDate.Value);
+    }
+
+    public async Task<IReadOnlyCollection<StockDailyQuote>> GetRecentQuotesAsync(
+        DateOnly toTradeDate,
+        int tradeDateCount,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = $"""
+            {SelectColumnsSql}
+            FROM StockDailyQuotes
+            WHERE TradeDate IN (
+                SELECT TradeDate
+                FROM (
+                    SELECT DISTINCT TradeDate
+                    FROM StockDailyQuotes
+                    WHERE TradeDate <= @ToTradeDate
+                    ORDER BY TradeDate DESC
+                    LIMIT @TradeDateCount
+                ) RecentTradeDates
+            )
+            ORDER BY StockCode, TradeDate DESC;
+            """;
+
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<StockDailyQuoteRow>(
+            new CommandDefinition(
+                sql,
+                new
+                {
+                    ToTradeDate = FormatTradeDate(toTradeDate),
+                    TradeDateCount = tradeDateCount
+                },
+                cancellationToken: cancellationToken));
+
+        return rows.Select(row => row.ToEntity()).ToArray();
+    }
+
+    private const string SelectColumnsSql = """
+        SELECT
+            Id,
+            TradeDate,
+            StockCode,
+            StockName,
+            TradeVolume,
+            TradeValue,
+            OpeningPrice,
+            HighestPrice,
+            LowestPrice,
+            ClosingPrice,
+            PriceChange,
+            PriceChangeText,
+            TransactionCount,
+            SyncedAtUtc
+        """;
 
     private static string FormatTradeDate(DateOnly tradeDate)
     {

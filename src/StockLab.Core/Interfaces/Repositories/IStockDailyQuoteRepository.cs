@@ -1,4 +1,4 @@
-using StockLab.Core.Entities;
+﻿using StockLab.Core.Entities;
 
 namespace StockLab.Core.Interfaces.Repositories;
 
@@ -22,5 +22,12 @@ public interface IStockDailyQuoteRepository
         string stockCode,
         DateOnly? fromTradeDate = null,
         DateOnly? toTradeDate = null,
+        CancellationToken cancellationToken = default);
+
+    Task<DateOnly?> GetLatestTradeDateAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<StockDailyQuote>> GetRecentQuotesAsync(
+        DateOnly toTradeDate,
+        int tradeDateCount,
         CancellationToken cancellationToken = default);
 }

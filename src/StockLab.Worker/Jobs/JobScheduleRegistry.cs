@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 using StockLab.Worker.Options;
@@ -20,6 +20,14 @@ public static class JobScheduleRegistry
                 StockDayAllSyncJob.DefaultCronExpression,
                 StockDayAllSyncJob.DefaultTimeZoneId,
                 "同步每日股票行情");
+
+            AddScheduledJob<StockMomentumSelectionJob>(
+                quartz,
+                configuration,
+                StockMomentumSelectionJob.JobName,
+                StockMomentumSelectionJob.DefaultCronExpression,
+                StockMomentumSelectionJob.DefaultTimeZoneId,
+                "挑選動能候選股票");
         });
 
         services.AddQuartzHostedService(options =>

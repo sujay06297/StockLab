@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using StockLab.Core.Interfaces.Notifications;

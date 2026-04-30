@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StockLab.Core.Interfaces.Notifications;
 using StockLab.Infrastructure.Options;

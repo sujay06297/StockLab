@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -52,8 +52,10 @@ public static class Program
                 services.AddSingleton<StockDatabaseInitializer>();
                 services.AddSingleton<INotificationSender, TelegramNotificationSender>();
                 services.AddScoped<IStockDailyQuoteRepository, StockDailyQuoteRepository>();
+                services.AddScoped<IStockSelectionResultRepository, StockSelectionResultRepository>();
                 services.AddScoped<ITwseClient, TwseClient>();
                 services.AddScoped<IStockSyncService, StockSyncService>();
+                services.AddScoped<IStockSelectionService, StockSelectionService>();
 
                 if (initializeDatabaseOnly)
                 {

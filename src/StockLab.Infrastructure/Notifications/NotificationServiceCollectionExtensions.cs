@@ -23,6 +23,10 @@ public static class NotificationServiceCollectionExtensions
         services.AddHttpClient("discord", client =>
         {
             client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            UseProxy = false
         });
 
         services.AddSingleton<INotificationChannelSender, DiscordNotificationSender>();

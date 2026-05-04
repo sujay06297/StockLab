@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging;
 using StockLab.Core.Interfaces.Clients;
 using StockLab.Core.Interfaces.Repositories;
@@ -34,6 +35,15 @@ public static class Program
             {
                 logging.ClearProviders();
                 logging.AddConsole();
+                if (OperatingSystem.IsWindows() && WindowsServiceHelpers.IsWindowsService())
+                {
+#pragma warning disable CA1416
+                    logging.AddEventLog(settings =>
+                    {
+                        settings.SourceName = "StockLab Worker";
+                    });
+#pragma warning restore CA1416
+                }
             })
             .ConfigureServices((context, services) =>
             {

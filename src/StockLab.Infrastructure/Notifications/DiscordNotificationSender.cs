@@ -12,7 +12,7 @@ public class DiscordNotificationSender(
     ILogger<DiscordNotificationSender> logger) : INotificationChannelSender
 {
     private const int DiscordContentLimit = 2000;
-    private const int MessageChunkSize = 1900;
+    private const int MessageChunkSize = 1800;
 
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly DiscordOptions _options = options.Value;
@@ -26,12 +26,28 @@ public class DiscordNotificationSender(
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            _logger.LogWarning("Discord 通知未送出：訊息內容為空。");
+            return;
+        }
+
         using var httpClient = _httpClientFactory.CreateClient("discord");
         foreach (var chunk in SplitMessage(message))
         {
             using var content = CreateJsonContent(chunk);
             using var response = await httpClient.PostAsync(_options.WebhookUrl, content, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError(
+                    "Discord 通知送出失敗：HTTP {StatusCode} {ReasonPhrase}，回應內容：{ResponseBody}",
+                    (int)response.StatusCode,
+                    response.ReasonPhrase,
+                    responseBody);
+
+                response.EnsureSuccessStatusCode();
+            }
         }
     }
 
@@ -53,15 +69,20 @@ public class DiscordNotificationSender(
 
     private static IEnumerable<string> SplitMessage(string message)
     {
-        if (message.Length <= DiscordContentLimit)
+        var normalizedMessage = message.Trim();
+        if (normalizedMessage.Length <= DiscordContentLimit)
         {
-            yield return message;
+            yield return normalizedMessage;
             yield break;
         }
 
-        for (var index = 0; index < message.Length; index += MessageChunkSize)
+        for (var index = 0; index < normalizedMessage.Length; index += MessageChunkSize)
         {
-            yield return message[index..Math.Min(index + MessageChunkSize, message.Length)];
+            var chunk = normalizedMessage[index..Math.Min(index + MessageChunkSize, normalizedMessage.Length)].Trim();
+            if (!string.IsNullOrWhiteSpace(chunk))
+            {
+                yield return chunk;
+            }
         }
     }
 }

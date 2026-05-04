@@ -40,24 +40,10 @@ public class StockMomentumSelectionJob(
                 return;
             }
 
-            var hasRun = await _stockSelectionResultRepository.HasStrategyRunAsync(
-                latestTradeDate.Value,
-                StockSelectionService.MomentumStrategyName,
-                cancellationToken);
-            if (hasRun)
-            {
-                _logger.LogInformation(
-                    "Job {JobName} 略過執行：交易日 {TradeDate} 已執行過。",
-                    JobName,
-                    latestTradeDate.Value);
-
-                await SendNotificationSafelyAsync(
-                    $"Job {JobName} 略過執行\n交易日：{latestTradeDate.Value:yyyy-MM-dd}\n原因：此交易日已執行過動能選股。",
-                    cancellationToken);
-                return;
-            }
-
-            _logger.LogInformation("Job {JobName} 開始執行：挑選動能候選股票。", JobName);
+            _logger.LogInformation(
+                "Job {JobName} 開始執行：重新挑選交易日 {TradeDate} 的動能候選股票。",
+                JobName,
+                latestTradeDate.Value);
             var candidates = await _stockSelectionService.SelectMomentumCandidatesAsync(cancellationToken);
 
             _logger.LogInformation(

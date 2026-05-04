@@ -18,7 +18,7 @@ public class StockMomentumSelectionJob(
     ILogger<StockMomentumSelectionJob> logger) : IJob
 {
     public const string JobName = "StockMomentumSelection";
-    public const string DefaultCronExpression = "0 10 18 * * ?";
+    public const string DefaultCronExpression = "0 35 17 * * ?";
     public const string DefaultTimeZoneId = "Taipei Standard Time";
 
     private readonly IStockDailyQuoteRepository _stockDailyQuoteRepository = stockDailyQuoteRepository;

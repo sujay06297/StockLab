@@ -13,7 +13,7 @@ public class StockDayAllSyncJob(
     ILogger<StockDayAllSyncJob> logger) : IJob
 {
     public const string JobName = "StockDayAllSync";
-    public const string DefaultCronExpression = "0 0 18 * * ?";
+    public const string DefaultCronExpression = "0 30 17 * * ?";
     public const string DefaultTimeZoneId = "Taipei Standard Time";
 
     private readonly IStockSyncService _stockSyncService = stockSyncService;

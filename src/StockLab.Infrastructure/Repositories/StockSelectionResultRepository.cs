@@ -99,7 +99,7 @@ public class StockSelectionResultRepository(IStockDbConnectionFactory connection
                 Id,
                 TradeDate,
                 StrategyName,
-                Rank,
+                `Rank` AS `Rank`,
                 StockCode,
                 StockName,
                 ClosingPrice,
@@ -115,7 +115,7 @@ public class StockSelectionResultRepository(IStockDbConnectionFactory connection
             FROM StockSelectionResults
             WHERE TradeDate = @TradeDate
               AND StrategyName = @StrategyName
-            ORDER BY Rank;
+            ORDER BY `Rank`;
             """;
 
         using var connection = _connectionFactory.CreateConnection();
@@ -170,7 +170,7 @@ public class StockSelectionResultRepository(IStockDbConnectionFactory connection
             INSERT INTO StockSelectionResults (
                 TradeDate,
                 StrategyName,
-                Rank,
+                `Rank`,
                 StockCode,
                 StockName,
                 ClosingPrice,

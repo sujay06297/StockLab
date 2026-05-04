@@ -48,7 +48,7 @@ public class StockDatabaseInitializer(IStockDbConnectionFactory connectionFactor
                 Id BIGINT NOT NULL AUTO_INCREMENT,
                 TradeDate DATE NOT NULL,
                 StrategyName VARCHAR(64) NOT NULL,
-                Rank INT NOT NULL,
+                `Rank` INT NOT NULL,
                 StockCode VARCHAR(16) NOT NULL,
                 StockName VARCHAR(64) NOT NULL,
                 ClosingPrice DECIMAL(18, 4) NOT NULL,
@@ -63,7 +63,7 @@ public class StockDatabaseInitializer(IStockDbConnectionFactory connectionFactor
                 SelectedAtUtc DATETIME(6) NOT NULL,
                 PRIMARY KEY (Id),
                 UNIQUE KEY UX_StockSelectionResults_Strategy_TradeDate_StockCode (StrategyName, TradeDate, StockCode),
-                KEY IX_StockSelectionResults_Strategy_TradeDate_Rank (StrategyName, TradeDate, Rank)
+                KEY IX_StockSelectionResults_Strategy_TradeDate_Rank (StrategyName, TradeDate, `Rank`)
             );
             """;
 

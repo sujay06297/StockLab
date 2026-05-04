@@ -56,6 +56,7 @@ public static class Program
                 services.AddScoped<ITwseClient, TwseClient>();
                 services.AddScoped<IStockSyncService, StockSyncService>();
                 services.AddScoped<IStockSelectionService, StockSelectionService>();
+                services.AddScoped<IJobExecutionService, JobExecutionService>();
 
                 if (initializeDatabaseOnly)
                 {
@@ -64,6 +65,7 @@ public static class Program
                 else
                 {
                     JobScheduleRegistry.AddScheduledJobs(context.Configuration, services);
+                    services.AddHostedService<StartupJobRunBackgroundService>();
                 }
             })
             .Build();

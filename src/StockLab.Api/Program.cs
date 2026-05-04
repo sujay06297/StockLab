@@ -22,6 +22,8 @@ public static class Program
             ?? throw new InvalidOperationException("缺少資料庫連線字串設定：ConnectionStrings:StockDb。");
 
         builder.Services.AddControllers();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
         builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
 
         builder.Services.AddHttpClient("twse")
@@ -55,6 +57,9 @@ public static class Program
             var databaseInitializer = scope.ServiceProvider.GetRequiredService<StockDatabaseInitializer>();
             await databaseInitializer.InitializeAsync();
         }
+
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.MapControllers();

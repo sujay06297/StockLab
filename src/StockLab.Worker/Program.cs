@@ -3,14 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StockLab.Core.Interfaces.Clients;
-using StockLab.Core.Interfaces.Notifications;
 using StockLab.Core.Interfaces.Repositories;
 using StockLab.Core.Interfaces.Services;
 using StockLab.Core.Services;
 using StockLab.Infrastructure.Data;
 using StockLab.Infrastructure.Http;
 using StockLab.Infrastructure.Notifications;
-using StockLab.Infrastructure.Options;
 using StockLab.Infrastructure.Repositories;
 using StockLab.Worker.BackgroundServices;
 using StockLab.Worker.Jobs;
@@ -24,6 +22,14 @@ public static class Program
         var initializeDatabaseOnly = args.Contains("--init-db", StringComparer.OrdinalIgnoreCase);
 
         var host = Host.CreateDefaultBuilder(args)
+            .UseWindowsService(options =>
+            {
+                options.ServiceName = "StockLab Worker";
+            })
+            .ConfigureAppConfiguration((_, configuration) =>
+            {
+                configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+            })
             .ConfigureLogging(logging =>
             {
                 logging.ClearProviders();
@@ -34,7 +40,7 @@ public static class Program
                 var connectionString = context.Configuration.GetConnectionString("StockDb")
                     ?? throw new InvalidOperationException("缺少資料庫連線字串設定：ConnectionStrings:StockDb。");
 
-                services.Configure<TelegramOptions>(context.Configuration.GetSection("Telegram"));
+                services.AddStockLabNotifications(context.Configuration);
 
                 services.AddHttpClient("twse")
                     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -42,15 +48,8 @@ public static class Program
                         UseProxy = false
                     });
 
-                services.AddHttpClient("telegram", client =>
-                {
-                    client.BaseAddress = new Uri("https://api.telegram.org/");
-                    client.Timeout = TimeSpan.FromSeconds(30);
-                });
-
                 services.AddSingleton<IStockDbConnectionFactory>(_ => new MySqlStockDbConnectionFactory(connectionString));
                 services.AddSingleton<StockDatabaseInitializer>();
-                services.AddSingleton<INotificationSender, TelegramNotificationSender>();
                 services.AddScoped<IStockDailyQuoteRepository, StockDailyQuoteRepository>();
                 services.AddScoped<IStockSelectionResultRepository, StockSelectionResultRepository>();
                 services.AddScoped<ITwseClient, TwseClient>();

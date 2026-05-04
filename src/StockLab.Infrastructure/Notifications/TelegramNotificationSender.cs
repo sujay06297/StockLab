@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using StockLab.Core.Interfaces.Notifications;
 using StockLab.Infrastructure.Options;
 
 namespace StockLab.Infrastructure.Notifications;
@@ -8,7 +7,7 @@ namespace StockLab.Infrastructure.Notifications;
 public class TelegramNotificationSender(
     IHttpClientFactory httpClientFactory,
     IOptions<TelegramOptions> options,
-    ILogger<TelegramNotificationSender> logger) : INotificationSender
+    ILogger<TelegramNotificationSender> logger) : INotificationChannelSender
 {
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly TelegramOptions _options = options.Value;

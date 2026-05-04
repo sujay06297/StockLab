@@ -50,6 +50,10 @@ public class StockMomentumSelectionJob(
                     "Job {JobName} 略過執行：交易日 {TradeDate} 已執行過。",
                     JobName,
                     latestTradeDate.Value);
+
+                await SendNotificationSafelyAsync(
+                    $"Job {JobName} 略過執行\n交易日：{latestTradeDate.Value:yyyy-MM-dd}\n原因：此交易日已執行過動能選股。",
+                    cancellationToken);
                 return;
             }
 

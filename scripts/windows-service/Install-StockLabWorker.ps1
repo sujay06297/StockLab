@@ -18,6 +18,26 @@ function Test-Administrator {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+function Test-PlaceholderLocalSettings {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    try {
+        $settings = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+        $webhookUrl = [string]$settings.Discord.WebhookUrl
+        $connectionString = [string]$settings.ConnectionStrings.StockDb
+
+        return $webhookUrl.Contains("your-webhook") -or
+            $connectionString.Contains("your-db-password")
+    }
+    catch {
+        Write-Warning "Unable to parse local settings file: $Path"
+        return $true
+    }
+}
+
 $scriptRoot = $PSScriptRoot
 $repoRoot = Split-Path -Parent (Split-Path -Parent $scriptRoot)
 
@@ -63,7 +83,11 @@ if ($PSCmdlet.ShouldProcess($publishPathFull, "dotnet publish")) {
 
 if (Test-Path $LocalSettingsPath) {
     Write-Host "Copying local settings from $LocalSettingsPath"
-    if ($PSCmdlet.ShouldProcess($publishPathFull, "copy appsettings.Local.json")) {
+    if (Test-PlaceholderLocalSettings -Path $LocalSettingsPath) {
+        Write-Warning "Local settings still contain placeholder values. Skipping appsettings.Local.json copy."
+        Write-Warning "Update $LocalSettingsPath with real values, or edit $(Join-Path $publishPathFull "appsettings.Local.json") manually."
+    }
+    elseif ($PSCmdlet.ShouldProcess($publishPathFull, "copy appsettings.Local.json")) {
         Copy-Item -LiteralPath $LocalSettingsPath -Destination (Join-Path $publishPathFull "appsettings.Local.json") -Force
     }
 }

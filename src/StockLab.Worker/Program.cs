@@ -41,6 +41,7 @@ public static class Program
                     logging.AddEventLog(settings =>
                     {
                         settings.SourceName = "StockLab Worker";
+                        settings.Filter = (_, logLevel) => logLevel >= LogLevel.Information;
                     });
 #pragma warning restore CA1416
                 }
